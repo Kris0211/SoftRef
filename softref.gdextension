@@ -1,0 +1,16 @@
+[configuration]
+
+entry_symbol = "softref_library_init"
+compatibility_minimum = 4.5
+reloadable = true
+
+[libraries]
+
+linux.x86_64.debug = "res://addons/soft_ref/bin/linux/libsoftref.linux.template_debug.x86_64.so"
+linux.x86_64.release = "res://addons/soft_ref/bin/linux/libsoftref.linux.template_release.x86_64.so"
+
+windows.x86_64.debug = "res://addons/soft_ref/bin/windows/libsoftref.windows.template_debug.x86_64.dll"
+windows.x86_64.release = "res://addons/soft_ref/bin/windows/libsoftref.windows.template_release.x86_64.dll"
+
+macos.debug = "res://addons/soft_ref/bin/macos/softref.macos.template_debug.framework"
+macos.release = "res://addons/soft_ref/bin/macos/softref.macos.template_release.framework"

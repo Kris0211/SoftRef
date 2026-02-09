@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="SoftRefLoader" inherits="Object" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+		Manages all [SoftRef]s that are asynchronously loading their [Resource]s.
+	</brief_description>
+	<description>
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="request_load">
+			<return type="void" />
+			<param index="0" name="soft_ref" type="SoftRef" />
+			<description>
+			Begins asynchronous load of the provided [SoftRef].
+			</description>
+		</method>
+		<method name="request_load_from_path">
+			<return type="SoftRef" />
+			<param index="0" name="path" type="String" />
+			<description>
+			Returns a [SoftRef] containing a [Resource] located at provided [param path] and immediately starts loading that [Resource] asynchronously.
+			</description>
+		</method>
+		<method name="request_load_from_uid">
+			<return type="SoftRef" />
+			<param index="0" name="uid" type="String" />
+			<description>
+			Returns a [SoftRef] containing a [Resource] denoted by provided [param uid] and immediately starts loading that [Resource] asynchronously.
+			</description>
+		</method>
+	</methods>
+</class>

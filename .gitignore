@@ -1,0 +1,17 @@
+.idea
+.sconsign.dblite
+
+bin/
+cmake-build-debug/
+godot/
+sample_project/
+
+godot
+
+godot-cpp/bin/
+godot-cpp/gen/
+godot-cpp/.sconsign*
+
+src/gen/
+src/*.gen.cpp
+src/*.os

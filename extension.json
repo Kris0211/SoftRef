@@ -1,0 +1,9 @@
+{
+  "entry_symbol": "softref_library_init",
+  "version": {
+    "major": 1,
+    "minor": 0
+  },
+  "language": "C++",
+  "platforms": ["linux"]
+}

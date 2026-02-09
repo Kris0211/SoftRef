@@ -1,0 +1,148 @@
+name: Build SoftRef
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    env:
+      GODOT_CPP_DIR: godot-cpp
+      SCONS_CACHE: ${{ github.workspace }}/.scons-cache
+      SCONS_CACHE_LIMIT: 4096
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Linux dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt update && sudo apt install -y build-essential scons pkg-config
+
+      - name: Install macOS dependencies
+        if: runner.os == 'macOS'
+        run: brew install scons
+
+      - name: Install Windows dependencies
+        if: runner.os == 'Windows'
+        run: python -m pip install scons
+
+      - name: Restore SCons cache
+        uses: actions/cache@v4
+        with:
+          path: .scons-cache
+          key: scons-${{ runner.os }}-${{ hashFiles('**/*.cpp', '**/*.h', 'SConstruct') }}
+          restore-keys: |
+            scons-${{ runner.os }}-
+
+      - name: Clone Godot headers
+        shell: bash
+        run: |
+          if [ ! -d godot ]; then
+            git clone --depth=1 https://github.com/godotengine/godot.git godot
+          fi
+
+      - name: Build Debug
+        shell: bash
+        run: |
+          scons \
+            platform=${{ runner.os == 'Linux' && 'linux' || runner.os == 'Windows' && 'windows' || 'macos' }} \
+            target=template_debug \
+            cache=yes
+
+      - name: Build Release
+        shell: bash
+        run: |
+          scons \
+            platform=${{ runner.os == 'Linux' && 'linux' || runner.os == 'Windows' && 'windows' || 'macos' }} \
+            target=template_release \
+            cache=yes
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: bin-${{ runner.os }}
+          path: bin/**
+
+  package:
+    name: Package SoftRef
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download Linux build
+        uses: actions/download-artifact@v4
+        with:
+          name: bin-Linux
+          path: artifacts/linux
+
+      - name: Download Windows build
+        uses: actions/download-artifact@v4
+        with:
+          name: bin-Windows
+          path: artifacts/windows
+
+      - name: Download macOS build
+        uses: actions/download-artifact@v4
+        with:
+          name: bin-macOS
+          path: artifacts/macos
+
+      - name: Assemble addon directory
+        shell: bash
+        run: |
+          mkdir -p release/addons/soft_ref/bin/{linux,windows,macos}
+
+          cp softref.gdextension release/addons/soft_ref/
+
+          cp artifacts/linux/*.so release/addons/soft_ref/bin/linux/
+          cp artifacts/windows/*.dll release/addons/soft_ref/bin/windows/
+          cp -R artifacts/macos/*.framework release/addons/soft_ref/bin/macos/
+
+      - name: Create ZIP
+        shell: bash
+        run: |
+          cd release
+          zip -r SoftRef_${{ github.ref_name }}.zip addons
+      
+      - name: Generate CHECKSUMS.txt
+        shell: bash
+        run: |
+          cd release/addons/soft_ref/bin
+          
+          {
+            find linux -type f -name "*.so" -exec sha256sum {} \;
+            find windows -type f -name "*.dll" -exec sha256sum {} \;
+            find macos -type f -path "*.framework/*" -type f ! -name "*.plist" -exec sha256sum {} \;
+          } > ../../../CHECKSUMS.txt
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            release/SoftRef_${{ github.ref_name }}.zip
+            release/CHECKSUMS.txt

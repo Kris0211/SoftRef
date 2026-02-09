@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<class name="SoftRef" inherits="RefCounted" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/godotengine/godot/master/doc/class.xsd">
+	<brief_description>
+	Soft reference to a [Resource] with async loading support.
+	</brief_description>
+	<description>
+	Holds a path and UID of a [Resource] stored in the filesystem. Allows both sync and async loading of that [Resource], deferring load until it is needed.
+	A reference to the loaded [Resource] can be obtained using [method get].
+	Example usage:
+	[codeblocks]
+	[gdscript]
+	var soft_ref := SoftRef.new()
+	soft_ref.path = "res://icon.svg"
+
+	soft_ref.load_async()
+	await soft_ref.loading_finished
+
+	if soft_ref.is_loaded():
+		var res = soft_ref.get()
+	else:
+		print("Loading failed! Status: ", soft_ref.get_load_state())
+	[/gdscript]
+	[/codeblocks]
+	</description>
+	<tutorials>
+	</tutorials>
+	<methods>
+		<method name="get" qualifiers="const">
+			<return type="Resource" />
+			<description>
+			Returns the loaded [Resource]. If the [Resource] has not yet been loaded or no longer exists, returns [code]null[/code].
+			</description>
+		</method>
+		<method name="get_load_state" qualifiers="const">
+			<return type="int" enum="SoftRef.LoadState" />
+			<description>
+			Returns the current load state of this [SoftRef].
+			</description>
+		</method>
+		<method name="get_progress" qualifiers="const">
+			<return type="float" />
+			<description>
+			Returns the current load progress, ranging from [code]0.0[/code] (not loaded) to [code]1.0[/code] (fully loaded).
+			</description>
+		</method>
+		<method name="is_failed" qualifiers="const">
+			<return type="bool" />
+			<description>
+			Returns [code]true[/code] if this [SoftRef] has failed to load the [Resource].
+			</description>
+		</method>
+		<method name="is_loaded" qualifiers="const">
+			<return type="bool" />
+			<description>
+			Returns [code]true[/code] if this [SoftRef] contains a fully loaded [Resource].
+			</description>
+		</method>
+		<method name="is_null" qualifiers="const">
+			<return type="bool" />
+			<description>
+			Returns [code]true[/code] if this [SoftRef] does not contain any valid [Resource] (e.g. the [Resource] has not been loaded yet).
+			</description>
+		</method>
+		<method name="is_pending" qualifiers="const">
+			<return type="bool" />
+			<description>
+			Returns [code]true[/code] if the underlying [Resource] is currently being loaded by this [SoftRef].
+			</description>
+		</method>
+		<method name="is_valid" qualifiers="const">
+			<return type="bool" />
+			<description>
+			Returns [code]true[/code] if this [SoftRef] contains a valid [Resource].
+			</description>
+		</method>
+		<method name="load_async">
+			<return type="void" />
+			<description>
+			Starts loading the [Resource] asynchronously. Emits [signal loading_finished] after the [Resource] has been successfully loaded (or if it has been already loaded before).
+			</description>
+		</method>
+		<method name="load_sync">
+			<return type="Resource" />
+			<description>
+			Loads the [Resource] synchronously, blocking the current thread until loading finishes.
+			</description>
+		</method>
+		<method name="reset">
+			<return type="void" />
+			<description>
+			Resets this [SoftRef], setting [member path] and [member uid] to empty strings, and the loaded [Resource] reference to [code]null[/code]
+			</description>
+		</method>
+	</methods>
+	<members>
+		<member name="path" type="String" setter="set_path" getter="get_path" default="&quot;&quot;">
+		Path to the [Resource] this [SoftRef] should load.
+		</member>
+		<member name="uid" type="String" setter="set_uid" getter="get_uid" default="&quot;&quot;">
+		UID of the [Resource] this [SoftRef] should load.
+		[b]Note:[/b] UIDs depends on editor state and may change after reimporting the project.
+		</member>
+	</members>
+	<signals>
+		<signal name="loading_finished">
+			<description>
+			Emitted when this [SoftRef] has finished loading a [Resource] asynchronously, regardless of whether the load operation was successful.
+			</description>
+		</signal>
+	</signals>
+	<constants>
+		<constant name="LOADED" value="0" enum="LoadState">
+		Loaded and valid.
+		</constant>
+		<constant name="EMPTY" value="1" enum="LoadState">
+		No resource path assigned.
+		</constant>
+		<constant name="NOT_LOADED" value="2" enum="LoadState">
+		Has resource path, but dit not load any resource yet.
+		</constant>
+		<constant name="PENDING" value="3" enum="LoadState">
+		Async request in progress.
+		</constant>
+		<constant name="FAILED" value="4" enum="LoadState">
+		Load attempt failed.
+		</constant>
+	</constants>
+</class>
+
